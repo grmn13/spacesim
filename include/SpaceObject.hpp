@@ -2,16 +2,26 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
 
+#include "Renderer.hpp"
+
 //position
 class point3D{
 
+	public:
+
 	int x, y, z;
+
+	int* matrix[3] = { &x, &y, &z };
 	SDL_Point sdlp;
 
 	point3D(int _x, int _y, int _z);
 
-	SDL_Point convertToSDL();
-}
+	void rotateX(double theta);
+	void rotateY(double theta);
+	void rotateZ(double theta);
+
+	void convertToSDL();
+};
 
 //motion
 

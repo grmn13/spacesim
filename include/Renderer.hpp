@@ -4,6 +4,10 @@
 #include <string>
 #include <sstream>
 
+inline int RES[2] = {1000,1000};
+inline double centerX = RES[0] / 2;
+inline double centerY = RES[1] / 2;
+
 class textRenderer{
 
     public:
