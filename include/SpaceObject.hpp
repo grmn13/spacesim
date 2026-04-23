@@ -9,9 +9,10 @@ class point3D{
 
 	public:
 
-	int x, y, z;
+	double x, y, z;
+	
+	double screenX, screenY;
 
-	int* matrix[3] = { &x, &y, &z };
 	SDL_Point sdlp;
 
 	point3D(int _x, int _y, int _z);
@@ -19,6 +20,8 @@ class point3D{
 	void rotateX(double theta);
 	void rotateY(double theta);
 	void rotateZ(double theta);
+
+	void project(double distance, double focalLength);
 
 	void convertToSDL();
 };
