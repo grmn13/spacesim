@@ -3,90 +3,97 @@
 #include "SpaceObject.hpp"
 
 
-
-point3D::point3D(int _x, int _y, int _z){
-
-	x = _x;
-	y = _y;
-	z = _z;
-
-	sdlp.x = x;
-	sdlp.y = y;
-}
-
-void point3D::convertToSDL(){
-
-	sdlp.x = x;
-	sdlp.y = y;
-}
-
-void point3D::rotateX(double theta){
+void Planet::rotateX(double theta){
 
 	double cosT = cos(theta);
 	double sinT = sin(theta);
 
-	double rotY = y - centerY;
+	for(point3D &pt : points){
 
-	y = rotY * cosT - z * sinT + centerY;
-	z = rotY * sinT + z * cosT;
+		double rotY = pt.y;
 
-	screenX = x;
-	screenY = y;
+		pt.y = rotY * cosT - pt.z * sinT;
+		pt.z = rotY * sinT + pt.z * cosT;
+
+	}
 }
 
-void point3D::rotateY(double theta){
+void Planet::rotateY(double theta){
 
 	double cosT = cos(theta);
 	double sinT = sin(theta);
 
-	double rotX = x - centerX;
+	for(point3D &pt : points){
 
-	x = rotX * cosT + z * sinT + centerX;
-	z = z * cosT - rotX * sinT;
+		double rotX = pt.x;
 
-	screenX = x;
-	screenY = y;
+		pt.x = rotX * cosT + pt.z * sinT;
+		pt.z = pt.z * cosT - rotX * sinT;
+	}
 }
 
-void point3D::rotateZ(double theta){
+void Planet::rotateZ(double theta){
 
 	double cosT = cos(theta);
 	double sinT = sin(theta);
 
-	double rotX = x - centerX;
-	double rotY = y - centerY;
+	for(point3D &pt : points){
 
-	x = rotX * cosT - rotY * sinT + centerX;
-	y = rotX * sinT + rotY * cosT + centerY;
+		double rotX = pt.x;
+		double rotY = pt.y;
 
-	screenX = x;
-	screenY = y;
+		pt.x = rotX * cosT - rotY * sinT;
+		pt.y = rotX * sinT + rotY * cosT;
+	}
 }
 
-void point3D::project(double distance, double focalLength){
+void Planet::project(double distance, double focalLength){
 
-	double denom = distance - z;
-	if(denom < 0.1) denom = 0.1;
+	for(point3D &pt : points){
 
-	double zConversion = focalLength / denom;
+		double ptPosX = pt.x + posX;
+		double ptPosY = pt.y + posY;
+		double ptPosZ = pt.z + posZ; 
+		
+		double denom = distance - ptPosZ;
+		if(denom < 0.1) denom = 0.1;
 
-	double tempX = x - centerX;
-	double tempY = y - centerY;
+		double zConversion = focalLength / denom;
 
-	screenX = tempX * zConversion + centerX;
-	screenY = tempY * zConversion + centerY;
+		pt.screenX = ptPosX * zConversion + (RES[0] / 2);
+		pt.screenY = ptPosY * zConversion + (RES[1] / 2);
+	}
 }
 
-Planet::Planet(double position_x, double position_y, double _mass, double _radius){
+Planet::Planet(double _x, double _y, double _z, double _mass, double _radius){
 
-	position[0] = position_x;
-	position[1] = position_y;
+	posX = _x;
+	posY = _y;
+	posZ = _z;
 
 	mass = _mass;
 	radius = _radius;
+	
+	points.push_back({-radius, radius, radius, 0, 0});
+	points.push_back({radius, radius, radius, 0, 0});
+	points.push_back({radius, -radius, radius, 0, 0});
+	points.push_back({-radius, -radius, radius, 0, 0});
+	points.push_back({-radius, radius, -radius, 0, 0});
+	points.push_back({radius, radius, -radius, 0, 0});
+	points.push_back({radius, -radius, -radius, 0, 0});
+	points.push_back({-radius, -radius, -radius, 0, 0});
 }
 
 void Planet::render(SDL_Renderer* renderer){
 
+	//render a rect here to see points, beware the half/size if u want to print all
 	
+	int hlf = points.size() / 2;
+
+	for(int i = 0; i < hlf; i++){
+	
+		SDL_RenderDrawLine(renderer, points[i].screenX, points[i].screenY, points[(i + 1) % hlf].screenX, points[(i + 1) % hlf].screenY);
+		SDL_RenderDrawLine(renderer, points[i].screenX, points[i].screenY, points[i + hlf].screenX, points[i + hlf].screenY);
+		SDL_RenderDrawLine(renderer, points[i + hlf].screenX, points[i + hlf].screenY, points[((i + 1) % hlf) + hlf].screenX, points[((i + 1) % hlf) + hlf].screenY);
+	}
 }
