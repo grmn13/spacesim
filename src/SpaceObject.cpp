@@ -53,7 +53,7 @@ void Camera::rotateZ(double theta){
 	position.rotateZ(theta);
 }
 
-void Planet::rotateX(double theta){
+void SpaceObject::rotateX(double theta){
 
 	for(point3D &pt : points){
 
@@ -61,7 +61,7 @@ void Planet::rotateX(double theta){
 	}
 }
 
-void Planet::rotateY(double theta){
+void SpaceObject::rotateY(double theta){
 
 	for(point3D &pt : points){
 
@@ -69,7 +69,7 @@ void Planet::rotateY(double theta){
 	}
 }
 
-void Planet::rotateZ(double theta){
+void SpaceObject::rotateZ(double theta){
 
 	for(point3D &pt : points){
 
@@ -77,8 +77,8 @@ void Planet::rotateZ(double theta){
 	}
 }
 
-//void Planet::project(Camera _cam, double distance, double fov){
-void Planet::project(const Camera _cam){
+//void SpaceObject::project(Camera _cam, double distance, double fov){
+void SpaceObject::project(const Camera _cam){
 
 	for(point3D &pt : points){
 
@@ -97,7 +97,7 @@ void Planet::project(const Camera _cam){
 	}
 }
 
-Planet::Planet(double _x, double _y, double _z, double _mass, double _radius){
+SpaceObject::SpaceObject(double _x, double _y, double _z, double _mass, double _radius){
 
 	posX = _x;
 	posY = _y;
@@ -116,7 +116,7 @@ Planet::Planet(double _x, double _y, double _z, double _mass, double _radius){
 	points.push_back({-radius, -radius, -radius, 0, 0});
 }
 
-void Planet::render(SDL_Renderer* renderer){
+void SpaceObject::render(SDL_Renderer* renderer){
 
 	//render a rect here to see points, beware the half/size if u want to print all
 	

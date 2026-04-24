@@ -22,8 +22,8 @@ int main(){
         textRenderer* txtRenderer = new textRenderer(renderer, "../src/Hack-Regular.ttf", 20);
 
 	Camera cam;
-	//Planet sun(500, 500, 0, 1.989e30, 696e3);
-	Planet sun(0, 0, 0, 50, 50);
+	//SpaceObject sun(500, 500, 0, 1.989e30, 696e3);
+	SpaceObject sun(0, 0, 0, 50, 50);
 	
 	SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
 

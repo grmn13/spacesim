@@ -38,7 +38,7 @@ class Camera{
 
 
 //physical objects
-class Planet{
+class SpaceObject{
 
 	public:
 
@@ -52,8 +52,7 @@ class Planet{
 	double radius;
 	double F;
 
-
-	Planet(double _x, double _y, double _z, double _mass, double _radius);
+	SpaceObject(double _x, double _y, double _z, double _mass, double _radius);
 
 	//display
 	void render(SDL_Renderer* rendrer);
