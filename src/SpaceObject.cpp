@@ -2,63 +2,95 @@
 
 #include "SpaceObject.hpp"
 
-
-void Planet::rotateX(double theta){
+void point3D::rotateX(double theta){
 
 	double cosT = cos(theta);
 	double sinT = sin(theta);
 
+	double rotY = y;
+
+	y = rotY * cosT - z * sinT;
+	z = rotY * sinT + z * cosT;
+
+}
+
+void point3D::rotateY(double theta){
+
+	double cosT = cos(theta);
+	double sinT = sin(theta);
+
+
+	double rotX = x;
+
+	x = rotX * cosT + z * sinT;
+	z = z * cosT - rotX * sinT;
+}
+
+void point3D::rotateZ(double theta){
+
+	double cosT = cos(theta);
+	double sinT = sin(theta);
+
+	double rotX = x;
+	double rotY = y;
+
+	x = rotX * cosT - rotY * sinT;
+	y = rotX * sinT + rotY * cosT;
+}
+
+void Camera::rotateX(double theta){
+
+	position.rotateX(theta);
+}
+
+void Camera::rotateY(double theta){
+
+	position.rotateY(theta);
+}
+
+void Camera::rotateZ(double theta){
+
+	position.rotateZ(theta);
+}
+
+void Planet::rotateX(double theta){
+
 	for(point3D &pt : points){
 
-		double rotY = pt.y;
-
-		pt.y = rotY * cosT - pt.z * sinT;
-		pt.z = rotY * sinT + pt.z * cosT;
-
+		pt.rotateX(theta);
 	}
 }
 
 void Planet::rotateY(double theta){
 
-	double cosT = cos(theta);
-	double sinT = sin(theta);
-
 	for(point3D &pt : points){
 
-		double rotX = pt.x;
-
-		pt.x = rotX * cosT + pt.z * sinT;
-		pt.z = pt.z * cosT - rotX * sinT;
+		pt.rotateY(theta);
 	}
 }
 
 void Planet::rotateZ(double theta){
 
-	double cosT = cos(theta);
-	double sinT = sin(theta);
-
 	for(point3D &pt : points){
 
-		double rotX = pt.x;
-		double rotY = pt.y;
-
-		pt.x = rotX * cosT - rotY * sinT;
-		pt.y = rotX * sinT + rotY * cosT;
+		pt.rotateZ(theta);
 	}
 }
 
-void Planet::project(double distance, double focalLength){
+//void Planet::project(Camera _cam, double distance, double fov){
+void Planet::project(const Camera _cam){
 
 	for(point3D &pt : points){
 
-		double ptPosX = pt.x + posX;
-		double ptPosY = pt.y + posY;
-		double ptPosZ = pt.z + posZ; 
+		double ptPosX = pt.x + posX - _cam.position.x;
+		double ptPosY = pt.y + posY - _cam.position.y;
+		double ptPosZ = pt.z + posZ - _cam.position.z; 
 		
-		double denom = distance - ptPosZ;
-		if(denom < 0.1) denom = 0.1;
+		//double denom = distance - ptPosZ;
+		//if(denom < 0.1) denom = 0.1;
+		if(ptPosZ < 0.1) ptPosZ = 0.1;
 
-		double zConversion = focalLength / denom;
+		double zConversion = _cam.fov / ptPosZ;
 
 		pt.screenX = ptPosX * zConversion + (RES[0] / 2);
 		pt.screenY = ptPosY * zConversion + (RES[1] / 2);

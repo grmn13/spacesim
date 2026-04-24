@@ -10,6 +10,30 @@ struct point3D{
 
 	double x, y, z;
 	double screenX, screenY;
+
+	void rotateX(double theta);
+	void rotateY(double theta);
+	void rotateZ(double theta);
+};
+
+class Camera{
+
+	public:
+
+	point3D position;
+	double fov;
+
+	Camera(){
+	
+		position.x = 0;
+		position.y = 0;
+		position.z = -150;
+		fov = 200;
+	}
+
+	void rotateX(double theta);
+	void rotateY(double theta);
+	void rotateZ(double theta);
 };
 
 
@@ -33,7 +57,8 @@ class Planet{
 
 	//display
 	void render(SDL_Renderer* rendrer);
-	void project(double distance, double focalLength);
+	void project(const Camera _cam);
+	//void project(double distance, double focalLength);
 
 	//motion
 	void rotateX(double theta);
