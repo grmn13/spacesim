@@ -3,8 +3,10 @@
 #include <SDL2/SDL_ttf.h>
 #include <string>
 #include <sstream>
+#include <vector>
+#include <utility>
 
-inline int RES[2] = {1000,1000};
+inline int RES[2] = {1920,1080};
 inline double centerX = RES[0] / 2;
 inline double centerY = RES[1] / 2;
 
@@ -30,3 +32,30 @@ class textRenderer{
 	}
 };
 
+class Hud{
+
+	private:
+
+	struct{
+	
+		int length = 10;
+		SDL_Color color = {255, 255, 255, 255};
+	} crosshair;
+	
+	public:
+
+	std::vector<std::pair<std::string, double*>> stats;
+
+	void renderCrossHair(SDL_Renderer* renderer);
+	
+	void renderStats(textRenderer* _txtRenderer){
+
+		for(int i = 0; i < stats.size(); i++){
+
+
+			_txtRenderer->renderVariable(10, i * 20 + 20, stats[i].first, *stats[i].second, {255, 255, 255});
+		}
+	}
+
+
+};

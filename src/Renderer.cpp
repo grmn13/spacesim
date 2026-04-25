@@ -42,4 +42,12 @@ void textRenderer::renderText(int x, int y, const std::string& text, SDL_Color c
 	SDL_DestroyTexture(texture);
 }
 
+void Hud::renderCrossHair(SDL_Renderer* renderer){
 
+	SDL_SetRenderDrawColor(renderer, crosshair.color.r, crosshair.color.g, crosshair.color.b, crosshair.color.a);
+
+	SDL_RenderDrawLine(renderer, RES[0] / 2 - crosshair.length, RES[1] / 2, RES[0] / 2 + crosshair.length, RES[1] / 2);
+	SDL_RenderDrawLine(renderer, RES[0] / 2, RES[1] / 2 - crosshair.length, RES[0] / 2, RES[1] / 2 + crosshair.length);
+
+	SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+}

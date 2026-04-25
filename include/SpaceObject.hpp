@@ -8,6 +8,13 @@
 //required forward declarations
 class SpaceObject;
 
+//helper functions
+
+const double PI = M_PI;
+const double HALF_PI = M_PI / 2;
+double map(double value, double f1, double l1, double f2, double l2);
+
+
 //position
 struct point3D{
 
@@ -54,12 +61,14 @@ class SpaceObject{
 	std::vector<point3D> points;
 
 	double velocity;
+	double angVelocityOrbit;
+	double angVelocityRotation;
 
 	double mass;
 	double radius;
 	double F;
 
-	SpaceObject(double _x, double _y, double _z, double _mass, double _radius);
+	SpaceObject(double _x, double _y, double _z, double _mass, double _radius, double angVelocityOrbit, double angVelocityRotation);
 
 	//display
 	void render(SDL_Renderer* rendrer);
