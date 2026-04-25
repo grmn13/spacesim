@@ -5,35 +5,42 @@
 
 #include "Renderer.hpp"
 
+//required forward declarations
+class SpaceObject;
+
 //position
 struct point3D{
 
 	double x, y, z;
 	double screenX, screenY;
 
-	void rotateX(double theta);
-	void rotateY(double theta);
-	void rotateZ(double theta);
+	void rotateX(double cosT, double sinT);
+	void rotateY(double cosT, double sinT);
+	void rotateZ(double cosT, double sinT);
 };
 
 class Camera{
 
 	public:
 
-	point3D position;
 	double fov;
+
+	double posX, posY, posZ;
+	double tiltX, tiltY, tiltZ;
 
 	Camera(){
 	
-		position.x = 0;
-		position.y = 0;
-		position.z = -150;
+		posX = 0;
+		posY = 0;
+		posZ = -150;
 		fov = 200;
-	}
 
-	void rotateX(double theta);
-	void rotateY(double theta);
-	void rotateZ(double theta);
+		tiltX = 0;
+		tiltY = 0;
+		tiltZ = 0;
+	}
+	
+	void worldCameraTransform(double &relX, double &relY, double &relZ);
 };
 
 
@@ -56,7 +63,7 @@ class SpaceObject{
 
 	//display
 	void render(SDL_Renderer* rendrer);
-	void project(const Camera _cam);
+	void project(Camera _cam);
 	//void project(double distance, double focalLength);
 
 	//motion
@@ -64,6 +71,7 @@ class SpaceObject{
 	void rotateY(double theta);
 	void rotateZ(double theta);
 
-
-	
+	void orbitX(double theta);
+	void orbitY(double theta);
+	void orbitZ(double theta);
 };

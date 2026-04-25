@@ -2,10 +2,8 @@
 
 #include "SpaceObject.hpp"
 
-void point3D::rotateX(double theta){
 
-	double cosT = cos(theta);
-	double sinT = sin(theta);
+void point3D::rotateX(double cosT, double sinT){
 
 	double rotY = y;
 
@@ -14,11 +12,7 @@ void point3D::rotateX(double theta){
 
 }
 
-void point3D::rotateY(double theta){
-
-	double cosT = cos(theta);
-	double sinT = sin(theta);
-
+void point3D::rotateY(double cosT, double sinT){
 
 	double rotX = x;
 
@@ -26,10 +20,7 @@ void point3D::rotateY(double theta){
 	z = z * cosT - rotX * sinT;
 }
 
-void point3D::rotateZ(double theta){
-
-	double cosT = cos(theta);
-	double sinT = sin(theta);
+void point3D::rotateZ(double cosT, double sinT){
 
 	double rotX = x;
 	double rotY = y;
@@ -38,62 +29,116 @@ void point3D::rotateZ(double theta){
 	y = rotX * sinT + rotY * cosT;
 }
 
-void Camera::rotateX(double theta){
+void SpaceObject::orbitX(double theta){
 
-	position.rotateX(theta);
+	double cosT = cos(theta);
+	double sinT = sin(theta);
+
+	double ogY = posY;
+
+	posY = ogY * cosT - posZ * sinT;
+	posZ = ogY * sinT + posZ * cosT;
 }
 
-void Camera::rotateY(double theta){
+void SpaceObject::orbitY(double theta){
 
-	position.rotateY(theta);
+	double cosT = cos(theta);
+	double sinT = sin(theta);
+
+	double ogX = posX;
+
+	posX = ogX * cosT + posZ * sinT;
+	posZ = posZ * cosT - ogX * sinT;
 }
 
-void Camera::rotateZ(double theta){
+void SpaceObject::orbitZ(double theta){
 
-	position.rotateZ(theta);
+	double cosT = cos(theta);
+	double sinT = sin(theta);
+
+	double ogX = posX;
+	double ogY = posY;
+
+	posX = ogX * cosT - ogY * sinT;
+	posY = ogX * sinT + ogY * cosT;
 }
 
 void SpaceObject::rotateX(double theta){
 
+	double cosT = cos(theta);
+	double sinT = sin(theta);
+
 	for(point3D &pt : points){
 
-		pt.rotateX(theta);
+		pt.rotateX(cosT, sinT);
 	}
 }
 
 void SpaceObject::rotateY(double theta){
 
+	double cosT = cos(theta);
+	double sinT = sin(theta);
+
 	for(point3D &pt : points){
 
-		pt.rotateY(theta);
+		pt.rotateY(cosT, sinT);
 	}
 }
 
 void SpaceObject::rotateZ(double theta){
 
+	double cosT = cos(theta);
+	double sinT = sin(theta);
+
 	for(point3D &pt : points){
 
-		pt.rotateZ(theta);
+		pt.rotateZ(cosT, sinT);
 	}
 }
 
-//void SpaceObject::project(Camera _cam, double distance, double fov){
-void SpaceObject::project(const Camera _cam){
+void Camera::worldCameraTransform(double &relX, double &relY, double &relZ){
+
+	if(tiltY){
+
+		double cosT = cos(-tiltY);
+		double sinT = sin(-tiltY);
+
+		double ogX = relX;
+		
+		relX = ogX * cosT + relZ * sinT;
+		relZ = relZ * cosT - ogX * sinT;
+	}
+
+	if(tiltX){
+
+		double cosT = cos(-tiltX);
+		double sinT = sin(-tiltX);
+
+		double ogY = relY;
+
+		relY = ogY * cosT - relZ * sinT;
+		relZ = ogY * sinT + relZ * cosT;
+	}
+}
+
+void SpaceObject::project(Camera _cam){
 
 	for(point3D &pt : points){
 
-		double ptPosX = pt.x + posX - _cam.position.x;
-		double ptPosY = pt.y + posY - _cam.position.y;
-		double ptPosZ = pt.z + posZ - _cam.position.z; 
+		double relPosX = pt.x + posX - _cam.posX;
+		double relPosY = pt.y + posY - _cam.posY;
+		double relPosZ = pt.z + posZ - _cam.posZ; 
 		
 		//double denom = distance - ptPosZ;
 		//if(denom < 0.1) denom = 0.1;
-		if(ptPosZ < 0.1) ptPosZ = 0.1;
 
-		double zConversion = _cam.fov / ptPosZ;
+		_cam.worldCameraTransform(relPosX, relPosY, relPosZ);
 
-		pt.screenX = ptPosX * zConversion + (RES[0] / 2);
-		pt.screenY = ptPosY * zConversion + (RES[1] / 2);
+		if(relPosZ < 0.1) relPosZ = 0.1;
+		double zConversion = _cam.fov / relPosZ;
+
+		pt.screenX = relPosX * zConversion + (RES[0] / 2);
+		pt.screenY = relPosY * zConversion + (RES[1] / 2);
 	}
 }
 

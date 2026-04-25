@@ -1,11 +1,15 @@
 #include <iostream>
 #include <vector>
+#include <numbers>
 
 #include "Renderer.hpp"
 #include "SpaceObject.hpp"
 
-#define SPEED 5
+#define SPEED 15
 
+const double PI = M_PI;
+
+double radToDeg(double radians);
 void handleKb(const Uint8* _kbstate, Camera &_cam);
 
 int main(){
@@ -23,8 +27,10 @@ int main(){
 
 	Camera cam;
 	//SpaceObject sun(500, 500, 0, 1.989e30, 696e3);
-	SpaceObject sun(0, 0, 0, 50, 50);
-	
+	SpaceObject sun(0, 0, 0, 100, 100);
+	SpaceObject jupiter(1000, 0, 0, 50, 50);
+	SpaceObject earth(600, 0, 0, 20, 20);
+
 	SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
 
 	const Uint8* kbstate = SDL_GetKeyboardState(NULL);
@@ -48,14 +54,27 @@ int main(){
 	
 		handleKb(kbstate, cam);
 
-		sun.rotateY(0.05);
+		sun.rotateY(0.02);
 		sun.project(cam);
 		sun.render(renderer);
+	
+		earth.rotateY(0.1);
+		earth.orbitY(0.05);
+		earth.project(cam);
+		earth.render(renderer);
 		
-		txtRenderer->renderVariable(10, 10, "cam X", cam.position.x, {255, 255, 255});
-		txtRenderer->renderVariable(10, 30, "cam Y", cam.position.y, {255, 255, 255});
-		txtRenderer->renderVariable(10, 50, "cam Z", cam.position.z, {255, 255, 255});
+		jupiter.rotateY(0.1);
+		jupiter.orbitY(0.02);
+		jupiter.project(cam);
+		jupiter.render(renderer);
+
+		txtRenderer->renderVariable(10, 10, "cam X", cam.posX, {255, 255, 255});
+		txtRenderer->renderVariable(10, 30, "cam Y", cam.posY, {255, 255, 255});
+		txtRenderer->renderVariable(10, 50, "cam Z", cam.posZ, {255, 255, 255});
 		txtRenderer->renderVariable(10, 70, "fov", cam.fov, {255, 255, 255});
+
+		txtRenderer->renderVariable(10, 100, "tilt X", radToDeg(cam.tiltX), {255, 255, 255});
+		txtRenderer->renderVariable(10, 120, "tilt Y", radToDeg(cam.tiltY), {255, 255, 255});
 
 		SDL_RenderPresent(renderer);
 	
@@ -70,35 +89,35 @@ void handleKb(const Uint8* _kbstate, Camera &_cam){
 	//_camera Z
 	if(_kbstate[SDL_SCANCODE_W]){
 
-		_cam.position.z += SPEED;
+		_cam.posZ += SPEED;
 	}
 	if(_kbstate[SDL_SCANCODE_S]){
 
-		_cam.position.z -= SPEED;
+		_cam.posZ -= SPEED;
 	}
 
 	//_camera X
 	if(_kbstate[SDL_SCANCODE_A]){
 
-		_cam.position.x -= SPEED;
+		_cam.posX -= SPEED;
 	}
 	if(_kbstate[SDL_SCANCODE_D]){
 
-		_cam.position.x += SPEED;
+		_cam.posX += SPEED;
 	}
 
 	//_camera Y
 	if(_kbstate[SDL_SCANCODE_SPACE]){
 
-		_cam.position.y -= SPEED;
+		_cam.posY -= SPEED;
 	}
 	if(_kbstate[SDL_SCANCODE_LSHIFT]){
 
-		_cam.position.y += SPEED;
+		_cam.posY += SPEED;
 	}
 	
 	//camera fov
-	if(_kbstate[SDL_SCANCODE_MINUS]){
+	if(_kbstate[SDL_SCANCODE_MINUS] && _cam.fov > 10){
 
 		_cam.fov -= 10;
 	}
@@ -107,20 +126,31 @@ void handleKb(const Uint8* _kbstate, Camera &_cam){
 		_cam.fov += 10;
 	}
 
-	//camera rotation
-	if(_kbstate[SDL_SCANCODE_1]){
+	//camera tilt X
+	if(_kbstate[SDL_SCANCODE_UP] && _cam.tiltX <= 1.55){
 
-		_cam.rotateX(0.05);
+		_cam.tiltX += 0.02;
 	}
-	if(_kbstate[SDL_SCANCODE_2]){
+	if(_kbstate[SDL_SCANCODE_DOWN] && _cam.tiltX >= -1.55){
 
-		_cam.rotateY(0.05);
-	}
-	if(_kbstate[SDL_SCANCODE_3]){
-
-		_cam.rotateZ(0.05);
+		_cam.tiltX -= 0.02;
 	}
 
+	//camera tilt Y
+	if(_kbstate[SDL_SCANCODE_LEFT]){
+
+		_cam.tiltY = std::fmod(_cam.tiltY - 0.02, 2 * PI);
+	}
+	if(_kbstate[SDL_SCANCODE_RIGHT]){
+
+		_cam.tiltY = std::fmod(_cam.tiltY + 0.02, 2 * PI);
+	}
+
+	
+}
 
 
+double radToDeg(double radians){
+
+	return radians * 180 / PI;
 }
