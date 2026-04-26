@@ -101,23 +101,37 @@ void SpaceObject::rotateZ(double theta){
 	}
 }
 
-void Camera::moveX(double speed){
+Camera::Camera(double _posX, double _posY, double _posZ, double _fov, double _tiltX, double _tiltY, double _tiltZ){
 
+	posX = _posX;
+	posY = _posY;
+	posZ = _posZ;
+	fov = _fov;
+
+	tiltX = _tiltX;
+	tiltY = _tiltY;
+	tiltZ = _tiltZ;
+}
+
+void Camera::moveX(double speed, float deltaT){
+
+	speed = speed * deltaT;
 	posX += cos(tiltY) * speed;
 	posZ -= sin(tiltY) * speed;
 }
 
-void Camera::moveY(double speed){
+void Camera::moveY(double speed, float deltaT){
 
+	speed = speed * deltaT;
 	posY += speed;
 }
 
-void Camera::moveZ(double speed){
+void Camera::moveZ(double speed, float deltaT){
 
+	speed = speed * deltaT;
 	posX += cos(tiltX) * sin(tiltY) * speed;
 	posY -= sin(tiltX) * speed; // negative due to inverted Y in SDL
 	posZ += cos(tiltX) * cos(tiltY) * speed;
-
 }
 
 void Camera::worldCameraTransform(double &relX, double &relY, double &relZ){
@@ -147,22 +161,102 @@ void Camera::worldCameraTransform(double &relX, double &relY, double &relZ){
 
 void SpaceObject::project(Camera _cam){
 
-	for(point3D &pt : points){
+	for(int i = 0; i < points.size(); i++){
 
-		double relPosX = pt.x + posX - _cam.posX;
-		double relPosY = pt.y + posY - _cam.posY;
-		double relPosZ = pt.z + posZ - _cam.posZ; 
+		double relPosX = points[i].x + posX - _cam.posX;
+		double relPosY = points[i].y + posY - _cam.posY;
+		double relPosZ = points[i].z + posZ - _cam.posZ; 
 		
-		//double denom = distance - ptPosZ;
-		//if(denom < 0.1) denom = 0.1;
-
 		_cam.worldCameraTransform(relPosX, relPosY, relPosZ);
 
 		if(relPosZ < 0.1) relPosZ = 0.1;
 		double zConversion = _cam.fov / relPosZ;
 
-		pt.screenX = relPosX * zConversion + (RES[0] / 2);
-		pt.screenY = relPosY * zConversion + (RES[1] / 2);
+		points[i].screenX = relPosX * zConversion + (RES[0] / 2);
+		points[i].screenY = relPosY * zConversion + (RES[1] / 2);
+
+		//flag to not render pixels outside the view of the camera
+		int nx = (i + 1) % points.size();
+		int eq_nxl = (i + objectRes) % points.size();
+	}
+
+	for(int i = 0; i < points.size(); i++){
+
+		//flag to not render pixels outside the view of the camera
+		int nx = (i + 1) % points.size();
+		int eq_nxl = (i + objectRes) % points.size();
+
+		if((points[i].screenX > 0 && points[i].screenX < RES[0] && points[i].screenY > 0 && points[i].screenY < RES[1])
+			|| (points[nx].screenX > 0 && points[nx].screenX < RES[0] && points[nx].screenY > 0 && points[nx].screenY < RES[1])
+			|| (points[eq_nxl].screenX > 0 && points[eq_nxl].screenX < RES[0] && points[eq_nxl].screenY > 0 && points[eq_nxl].screenY < RES[1])){
+
+			points[i].onScreen = true;
+		}
+		else{
+			points[i].onScreen = false;
+		}
+
+	}
+
+
+}
+
+//this is an overload of project meant to take in a decoy camera
+//that will set the points to not be rendered as if that was the main camera
+//while the actual projection happens on the real camera
+void SpaceObject::project(Camera _cam, Camera decoy){
+
+	for(int i = 0; i < points.size(); i++){
+
+		double relPosX = points[i].x + posX - decoy.posX;
+		double relPosY = points[i].y + posY - decoy.posY;
+		double relPosZ = points[i].z + posZ - decoy.posZ; 
+		
+		//double denom = distance - ptPosZ;
+		//if(denom < 0.1) denom = 0.1;
+
+		decoy.worldCameraTransform(relPosX, relPosY, relPosZ);
+
+		if(relPosZ < 0.1) relPosZ = 0.1;
+		double zConversion = decoy.fov / relPosZ;
+
+		points[i].screenX = relPosX * zConversion + (RES[0] / 2);
+		points[i].screenY = relPosY * zConversion + (RES[1] / 2);
+	}
+
+	for(int i = 0; i < points.size(); i++){
+
+		//flag to not render pixels outside the view of the camera
+		int nx = (i + 1) % points.size();
+		int eq_nxl = (i + objectRes) % points.size();
+
+		if((points[i].screenX > 0 && points[i].screenX < RES[0] && points[i].screenY > 0 && points[i].screenY < RES[1])
+			|| (points[nx].screenX > 0 && points[nx].screenX < RES[0] && points[nx].screenY > 0 && points[nx].screenY < RES[1])
+			|| (points[eq_nxl].screenX > 0 && points[eq_nxl].screenX < RES[0] && points[eq_nxl].screenY > 0 && points[eq_nxl].screenY < RES[1])){
+
+			points[i].onScreen = true;
+		}
+		else{
+			points[i].onScreen = false;
+		}
+
+	}
+
+
+	for(int i = 0; i < points.size(); i++){
+
+		double relPosX = points[i].x + posX - _cam.posX;
+		double relPosY = points[i].y + posY - _cam.posY;
+		double relPosZ = points[i].z + posZ - _cam.posZ; 
+		
+		_cam.worldCameraTransform(relPosX, relPosY, relPosZ);
+
+		if(relPosZ < 0.1) relPosZ = 0.1;
+		double zConversion = _cam.fov / relPosZ;
+
+		points[i].screenX = relPosX * zConversion + (RES[0] / 2);
+		points[i].screenY = relPosY * zConversion + (RES[1] / 2);
+
 	}
 }
 
@@ -225,15 +319,18 @@ void SpaceObject::render(SDL_Renderer* renderer, textRenderer* txtRenderer){
 			//pt in current line
 			int idx = j + (i * objectRes);
 
-			//next pt wrapping around line
-			int nx = (idx + 1) % objectRes + i * objectRes;
+			if(points[idx].onScreen){
+				
+				//next pt wrapping around line
+				int nx = (idx + 1) % objectRes + i * objectRes;
 
-			//pt below in the grid
-			int eq_nxl = (idx + objectRes) % pSize;
+				//pt below in the grid
+				int eq_nxl = (idx + objectRes) % pSize;
 
-			SDL_RenderDrawLine(renderer, points[idx].screenX, points[idx].screenY, points[nx].screenX, points[nx].screenY);
-			SDL_RenderDrawLine(renderer, points[idx].screenX, points[idx].screenY, points[eq_nxl].screenX, points[eq_nxl].screenY);
-			SDL_RenderDrawLine(renderer, points[eq_nxl].screenX, points[eq_nxl].screenY, points[nx].screenX, points[nx].screenY);
+				SDL_RenderDrawLine(renderer, points[idx].screenX, points[idx].screenY, points[nx].screenX, points[nx].screenY);
+				SDL_RenderDrawLine(renderer, points[idx].screenX, points[idx].screenY, points[eq_nxl].screenX, points[eq_nxl].screenY);
+				SDL_RenderDrawLine(renderer, points[eq_nxl].screenX, points[eq_nxl].screenY, points[nx].screenX, points[nx].screenY);
+			}
 
 		}
 	}

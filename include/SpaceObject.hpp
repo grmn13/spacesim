@@ -20,6 +20,7 @@ struct point3D{
 
 	double x, y, z;
 	double screenX, screenY;
+	bool onScreen;
 
 	void rotateX(double cosT, double sinT);
 	void rotateY(double cosT, double sinT);
@@ -34,23 +35,12 @@ class Camera{
 
 	double posX, posY, posZ;
 	double tiltX, tiltY, tiltZ;
-	//double fwX, fwY, fwZ; //components of forward vector
 
-	Camera(){
-	
-		posX = 0;
-		posY = 0;
-		posZ = -200;
-		fov = 400;
+	Camera(double _posX = 0, double _posY = 0, double _posZ = -200, double _fov = 400, double _tiltX = 0, double _tiltY = 0, double _tiltZ = 0);
 
-		tiltX = 0;
-		tiltY = 0;
-		tiltZ = 0;
-	}
-
-	void moveX(double speed);
-	void moveY(double speed);
-	void moveZ(double speed);
+	void moveX(double speed, float deltaT);
+	void moveY(double speed, float deltaT);
+	void moveZ(double speed, float deltaT);
 
 	void worldCameraTransform(double &relX, double &relY, double &relZ);
 };
@@ -79,7 +69,9 @@ class SpaceObject{
 
 	//display
 	void render(SDL_Renderer* rendrer, textRenderer* txtRenderer);
+	//void project(Camera _cam);
 	void project(Camera _cam);
+	void project(Camera _cam, Camera decoy);
 	//void project(double distance, double focalLength);
 
 	//motion
