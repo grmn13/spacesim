@@ -39,8 +39,8 @@ class Camera{
 	
 		posX = 0;
 		posY = 0;
-		posZ = -150;
-		fov = 200;
+		posZ = -200;
+		fov = 400;
 
 		tiltX = 0;
 		tiltY = 0;
@@ -68,10 +68,12 @@ class SpaceObject{
 	double radius;
 	double F;
 
+	int objectRes;
+
 	SpaceObject(double _x, double _y, double _z, double _mass, double _radius, double angVelocityOrbit, double angVelocityRotation);
 
 	//display
-	void render(SDL_Renderer* rendrer);
+	void render(SDL_Renderer* rendrer, textRenderer* txtRenderer);
 	void project(Camera _cam);
 	//void project(double distance, double focalLength);
 

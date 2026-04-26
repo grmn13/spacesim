@@ -1,4 +1,5 @@
 #include <cmath>
+#include <iostream>
 
 #include "SpaceObject.hpp"
 
@@ -158,6 +159,8 @@ SpaceObject::SpaceObject(double _x, double _y, double _z, double _mass, double _
 	angVelocityOrbit = _angVelocityOrbit;
 	angVelocityRotation = _angVelocityRotation;
 
+	objectRes = 20;
+
 	/*
 	points.push_back({-radius, radius, radius, 0, 0});
 	points.push_back({radius, radius, radius, 0, 0});
@@ -168,22 +171,20 @@ SpaceObject::SpaceObject(double _x, double _y, double _z, double _mass, double _
 	points.push_back({radius, -radius, -radius, 0, 0});
 	points.push_back({-radius, -radius, -radius, 0, 0});
 	*/
-	
-	int objectRes = 50;
 
-	for(int i = 0; i < objectRes; i++){
+	for(int i = 0; i < objectRes + 1; i++){
 	
-		float lon = map(i, 0, objectRes, -PI, PI);
+		float lat = map(i, 0, objectRes, -HALF_PI, HALF_PI);
 
-		float cosLon = cos(lon);
-		float sinLon = sin(lon);
+		float cosLat = cos(lat);
+		float sinLat = sin(lat);
 
 		for(int j = 0; j < objectRes; j++){
 
-			float lat = map(j, 0, objectRes, -HALF_PI, PI);
+			float lon = map(j, 0, objectRes, -PI, PI);
 
-			float cosLat = cos(lat);
-			float sinLat = sin(lat);
+			float cosLon = cos(lon);
+			float sinLon = sin(lon);
 
 			float x = _radius * sinLon * cosLat;
 			float y = _radius * sinLon * sinLat;
@@ -194,23 +195,28 @@ SpaceObject::SpaceObject(double _x, double _y, double _z, double _mass, double _
 	}
 }
 
-void SpaceObject::render(SDL_Renderer* renderer){
+void SpaceObject::render(SDL_Renderer* renderer, textRenderer* txtRenderer){
 
-	//render a rect here to see points, beware the half/size if u want to print all
+	int pSize = points.size();
 
-	/*
-	int hlf = points.size() / 2;
-
-	for(int i = 0; i < hlf; i++){
+	for(int i = 0; i < objectRes; i++){
 	
-		SDL_RenderDrawLine(renderer, points[i].screenX, points[i].screenY, points[(i + 1) % hlf].screenX, points[(i + 1) % hlf].screenY);
-		SDL_RenderDrawLine(renderer, points[i].screenX, points[i].screenY, points[i + hlf].screenX, points[i + hlf].screenY);
-		SDL_RenderDrawLine(renderer, points[i + hlf].screenX, points[i + hlf].screenY, points[((i + 1) % hlf) + hlf].screenX, points[((i + 1) % hlf) + hlf].screenY);
-	}
-	*/
+		for(int j = 0; j < objectRes; j++){
 
-	for(point3D pt : points){
+			//pt in current line
+			int idx = j + (i * objectRes);
 
-		SDL_RenderDrawPoint(renderer, pt.screenX, pt.screenY);
+			//next pt wrapping around line
+			int nx = (idx + 1) % objectRes + i * objectRes;
+
+			//pt below in the grid
+			int eq_nxl = (idx + objectRes) % pSize;
+
+			SDL_RenderDrawLine(renderer, points[idx].screenX, points[idx].screenY, points[nx].screenX, points[nx].screenY);
+			SDL_RenderDrawLine(renderer, points[idx].screenX, points[idx].screenY, points[eq_nxl].screenX, points[eq_nxl].screenY);
+			SDL_RenderDrawLine(renderer, points[eq_nxl].screenX, points[eq_nxl].screenY, points[nx].screenX, points[nx].screenY);
+
+		}
 	}
+
 }

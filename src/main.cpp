@@ -6,9 +6,8 @@
 
 #include "Renderer.hpp"
 #include "SpaceObject.hpp"
-
-#define SPEED 50
-#define FOVSPEED 40
+#define SPEED 30
+#define FOVSPEED 20
 
 double radToDeg(double radians);
 void handleKb(const Uint8* _kbstate, Camera &_cam);
@@ -94,7 +93,7 @@ int main(){
 			so->rotateY(so->angVelocityRotation);
 			so->orbitY(so->angVelocityOrbit);
 			so->project(cam);
-			so->render(renderer);
+			so->render(renderer, txtRenderer);
 		}
 	
 		hud.renderCrossHair(renderer);
