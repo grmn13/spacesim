@@ -101,6 +101,25 @@ void SpaceObject::rotateZ(double theta){
 	}
 }
 
+void Camera::moveX(double speed){
+
+	posX += cos(tiltY) * speed;
+	posZ -= sin(tiltY) * speed;
+}
+
+void Camera::moveY(double speed){
+
+	posY += speed;
+}
+
+void Camera::moveZ(double speed){
+
+	posX += cos(tiltX) * sin(tiltY) * speed;
+	posY -= sin(tiltX) * speed; // negative due to inverted Y in SDL
+	posZ += cos(tiltX) * cos(tiltY) * speed;
+
+}
+
 void Camera::worldCameraTransform(double &relX, double &relY, double &relZ){
 
 	if(tiltY){

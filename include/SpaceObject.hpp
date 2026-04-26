@@ -34,6 +34,7 @@ class Camera{
 
 	double posX, posY, posZ;
 	double tiltX, tiltY, tiltZ;
+	//double fwX, fwY, fwZ; //components of forward vector
 
 	Camera(){
 	
@@ -46,7 +47,11 @@ class Camera{
 		tiltY = 0;
 		tiltZ = 0;
 	}
-	
+
+	void moveX(double speed);
+	void moveY(double speed);
+	void moveZ(double speed);
+
 	void worldCameraTransform(double &relX, double &relY, double &relZ);
 };
 

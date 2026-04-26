@@ -8,6 +8,7 @@
 #include "SpaceObject.hpp"
 #define SPEED 30
 #define FOVSPEED 20
+#define CAMSPEED 3
 
 double radToDeg(double radians);
 void handleKb(const Uint8* _kbstate, Camera &_cam);
@@ -110,42 +111,38 @@ int main(){
 void handleKb(const Uint8* _kbstate, Camera &_cam){
 
 
-	//i need to fix the movement is not taking
-	//into account the tilt of the camera
-	
-
 	//_camera Z
 	if(_kbstate[SDL_SCANCODE_W]){
 
-		_cam.posZ += SPEED;
+		_cam.moveZ(SPEED); // negative due to inverted Y in SDL
 	}
 	if(_kbstate[SDL_SCANCODE_S]){
 
-		_cam.posZ -= SPEED;
+		_cam.moveZ(-SPEED);
 	}
 
 	//_camera X
 	if(_kbstate[SDL_SCANCODE_A]){
 
-		_cam.posX -= SPEED;
+		_cam.moveX(-SPEED);
 	}
 	if(_kbstate[SDL_SCANCODE_D]){
 
-		_cam.posX += SPEED;
+		_cam.moveX(SPEED);
 	}
 
 	//_camera Y
 	if(_kbstate[SDL_SCANCODE_SPACE]){
 
-		_cam.posY -= SPEED;
+		_cam.moveY(-SPEED);
 	}
 	if(_kbstate[SDL_SCANCODE_LSHIFT]){
 
-		_cam.posY += SPEED;
+		_cam.moveY(SPEED);
 	}
 	
 	//camera fov
-	if(_kbstate[SDL_SCANCODE_MINUS] && _cam.fov > 10){
+	if(_kbstate[SDL_SCANCODE_MINUS] && _cam.fov > FOVSPEED){
 
 		_cam.fov -= FOVSPEED;
 	}
@@ -169,11 +166,11 @@ void handleKb(const Uint8* _kbstate, Camera &_cam){
 	//value is multiplied by 1500 / fov to make it adapt on distance
 	if(_kbstate[SDL_SCANCODE_LEFT]){
 
-		_cam.tiltY = std::fmod(_cam.tiltY - (0.01 * (1500 / _cam.fov)), 2 * PI);
+		_cam.tiltY = std::fmod(_cam.tiltY - (CAMSPEED * (15 / _cam.fov)), 2 * PI);
 	}
 	if(_kbstate[SDL_SCANCODE_RIGHT]){
 
-		_cam.tiltY = std::fmod(_cam.tiltY + (0.01 * (1500 / _cam.fov)), 2 * PI);
+		_cam.tiltY = std::fmod(_cam.tiltY + (CAMSPEED * (15 / _cam.fov)), 2 * PI);
 	}
 }
 
