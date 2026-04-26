@@ -6,24 +6,36 @@
 
 #include "Renderer.hpp"
 #include "SpaceObject.hpp"
-#define SPEED 30
+#define SPEED 20
 #define FOVSPEED 20
-#define CAMSPEED 3
+#define CAMSPEED 2
+#define MOUSESENS 1
 
 double radToDeg(double radians);
-void handleKb(const Uint8* _kbstate, Camera &_cam);
+void handleInput(SDL_Event* _events, const Uint8* _kbstate, Camera &_cam);
 
-int main(){
+int main(int argc, char* argv[]){
 
         SDL_Window* window = nullptr;
         SDL_Renderer* renderer = nullptr;
 
         SDL_Init(SDL_INIT_EVERYTHING);
 
+
+
         SDL_CreateWindowAndRenderer(RES[0], RES[1], 0, &window, &renderer);
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         SDL_RenderClear(renderer);
 	SDL_RenderPresent(renderer);
+
+			//strcmp returns 0 if true
+	if(!(argc > 1 && !strcmp(argv[1], "--nm")) && SDL_SetRelativeMouseMode(SDL_TRUE) < 0){
+
+		std::cerr << "ERR: Could not capture mouse, use --nm to disable mouse support" << std::endl;
+		std::cerr << "error code: " << SDL_GetError() << std::endl;
+		return 1;
+	}
+
         textRenderer* txtRenderer = new textRenderer(renderer, "../src/Hack-Regular.ttf", 20);
 
 	Camera cam;
@@ -66,6 +78,7 @@ int main(){
 
 	SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
 
+	SDL_Event events;
 	const Uint8* kbstate = SDL_GetKeyboardState(NULL);
 
 	bool run = true;
@@ -78,14 +91,12 @@ int main(){
 
 		SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
 
-		SDL_PumpEvents();
-
 		if(kbstate[SDL_SCANCODE_ESCAPE]){
 
 			run = false;
 		}
 	
-		handleKb(kbstate, cam);
+		handleInput(&events, kbstate, cam);
 		
 		for(auto &astro : astros){
 
@@ -108,8 +119,36 @@ int main(){
 	return 0;
 }
 
-void handleKb(const Uint8* _kbstate, Camera &_cam){
+void handleInput(SDL_Event* _events, const Uint8* _kbstate, Camera &_cam){
 
+	while(SDL_PollEvent(_events)){
+		
+		if(_events->type == SDL_MOUSEMOTION){
+
+			if(_events->motion.yrel){
+			
+				double inputTiltX = _events->motion.yrel * (MOUSESENS / _cam.fov);
+		
+				if((_cam.tiltX - inputTiltX) < -1.57){
+			
+					_cam.tiltX = -1.57;
+				}
+				else if((_cam.tiltX - inputTiltX) > 1.57){
+				
+					_cam.tiltX = 1.57;
+				}
+				else{
+					
+					_cam.tiltX -= inputTiltX;
+				}
+			}
+
+			if(_events->motion.xrel){
+
+				_cam.tiltY = std::fmod(_cam.tiltY + (_events->motion.xrel * (MOUSESENS / _cam.fov)), 2 * PI);
+			}
+		}
+	}
 
 	//_camera Z
 	if(_kbstate[SDL_SCANCODE_W]){
@@ -150,15 +189,15 @@ void handleKb(const Uint8* _kbstate, Camera &_cam){
 
 		_cam.fov += FOVSPEED;
 	}
-
+	
 	//camera tilt X
 	if(_kbstate[SDL_SCANCODE_UP]){
 
-		_cam.tiltX = _cam.tiltX + (0.01 * (1500 / _cam.fov)) > 1.57 ? 1.57 : _cam.tiltX + (0.01 * (1500 / _cam.fov));
+		_cam.tiltX = _cam.tiltX + (CAMSPEED * (15 / _cam.fov)) > 1.57 ? 1.57 : _cam.tiltX + (CAMSPEED * (15 / _cam.fov));
 	}
 	if(_kbstate[SDL_SCANCODE_DOWN]){
 
-		_cam.tiltX = _cam.tiltX - (0.01 * (1500 / _cam.fov)) < -1.57 ? -1.57 : _cam.tiltX - (0.01 * (1500 / _cam.fov));
+		_cam.tiltX = _cam.tiltX - (CAMSPEED * (15 / _cam.fov)) < -1.57 ? -1.57 : _cam.tiltX - (CAMSPEED * (15 / _cam.fov));
 	}
 
 	//camera tilt Y
@@ -172,6 +211,8 @@ void handleKb(const Uint8* _kbstate, Camera &_cam){
 
 		_cam.tiltY = std::fmod(_cam.tiltY + (CAMSPEED * (15 / _cam.fov)), 2 * PI);
 	}
+
+
 }
 
 
