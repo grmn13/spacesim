@@ -16,6 +16,7 @@ set(SOURCES
     src/main.cpp 
     src/Renderer.cpp 
     src/SpaceObject.cpp
+    src/Input.cpp
 )
 
 add_executable(spacesim ${SOURCES})

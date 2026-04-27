@@ -6,6 +6,8 @@
 #include <vector>
 #include <utility>
 
+#include "defines.hpp"
+
 inline int RES[2] = {1920,1080};
 inline double centerX = RES[0] / 2;
 inline double centerY = RES[1] / 2;

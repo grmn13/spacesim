@@ -8,6 +8,22 @@ double map(double value, double f1, double l1, double f2, double l2){
 	return f2 + (l2 - f2) * ((value - f1) / (l1 - f1));
 }
 
+void point3D::project(Camera &_cam, double _posX, double _posY, double _posZ){
+
+	double relPosX = x + _posX - _cam.posX;
+	double relPosY = y + _posY - _cam.posY;
+	double relPosZ = z + _posZ - _cam.posZ; 
+	
+	_cam.worldCameraTransform(relPosX, relPosY, relPosZ);
+
+	if(relPosZ < 0.1) relPosZ = 0.1;
+	double zConversion = _cam.fov / relPosZ;
+
+	screenX = relPosX * zConversion + (RES[0] / 2);
+	screenY = relPosY * zConversion + (RES[1] / 2);
+}
+
+
 void point3D::rotateX(double cosT, double sinT){
 
 	double rotY = y;
@@ -159,25 +175,11 @@ void Camera::worldCameraTransform(double &relX, double &relY, double &relZ){
 	}
 }
 
-void SpaceObject::project(Camera _cam){
+void SpaceObject::project(Camera &_cam){
 
 	for(int i = 0; i < points.size(); i++){
 
-		double relPosX = points[i].x + posX - _cam.posX;
-		double relPosY = points[i].y + posY - _cam.posY;
-		double relPosZ = points[i].z + posZ - _cam.posZ; 
-		
-		_cam.worldCameraTransform(relPosX, relPosY, relPosZ);
-
-		if(relPosZ < 0.1) relPosZ = 0.1;
-		double zConversion = _cam.fov / relPosZ;
-
-		points[i].screenX = relPosX * zConversion + (RES[0] / 2);
-		points[i].screenY = relPosY * zConversion + (RES[1] / 2);
-
-		//flag to not render pixels outside the view of the camera
-		int nx = (i + 1) % points.size();
-		int eq_nxl = (i + objectRes) % points.size();
+		points[i].project(_cam, posX, posY, posZ);
 	}
 
 	for(int i = 0; i < points.size(); i++){
@@ -197,31 +199,16 @@ void SpaceObject::project(Camera _cam){
 		}
 
 	}
-
-
 }
 
 //this is an overload of project meant to take in a decoy camera
 //that will set the points to not be rendered as if that was the main camera
 //while the actual projection happens on the real camera
-void SpaceObject::project(Camera _cam, Camera decoy){
+void SpaceObject::project(Camera &_cam, Camera &_decoy){
 
 	for(int i = 0; i < points.size(); i++){
 
-		double relPosX = points[i].x + posX - decoy.posX;
-		double relPosY = points[i].y + posY - decoy.posY;
-		double relPosZ = points[i].z + posZ - decoy.posZ; 
-		
-		//double denom = distance - ptPosZ;
-		//if(denom < 0.1) denom = 0.1;
-
-		decoy.worldCameraTransform(relPosX, relPosY, relPosZ);
-
-		if(relPosZ < 0.1) relPosZ = 0.1;
-		double zConversion = decoy.fov / relPosZ;
-
-		points[i].screenX = relPosX * zConversion + (RES[0] / 2);
-		points[i].screenY = relPosY * zConversion + (RES[1] / 2);
+		points[i].project(_decoy, posX, posY, posZ);
 	}
 
 	for(int i = 0; i < points.size(); i++){
@@ -242,25 +229,69 @@ void SpaceObject::project(Camera _cam, Camera decoy){
 
 	}
 
-
 	for(int i = 0; i < points.size(); i++){
 
-		double relPosX = points[i].x + posX - _cam.posX;
-		double relPosY = points[i].y + posY - _cam.posY;
-		double relPosZ = points[i].z + posZ - _cam.posZ; 
-		
-		_cam.worldCameraTransform(relPosX, relPosY, relPosZ);
-
-		if(relPosZ < 0.1) relPosZ = 0.1;
-		double zConversion = _cam.fov / relPosZ;
-
-		points[i].screenX = relPosX * zConversion + (RES[0] / 2);
-		points[i].screenY = relPosY * zConversion + (RES[1] / 2);
-
+		points[i].project(_cam, posX, posY, posZ);
 	}
 }
 
-SpaceObject::SpaceObject(double _x, double _y, double _z, double _mass, double _radius, double _angVelocityOrbit, double _angVelocityRotation){
+void SpaceObject::render(SDL_Renderer* renderer, textRenderer* _txtRenderer, bool renderLabels, Camera &_cam){
+
+	int pSize = points.size();
+
+	for(int i = 0; i < objectRes; i++){
+	
+		for(int j = 0; j < objectRes; j++){
+
+			//pt in current line
+			int idx = j + (i * objectRes);
+
+			if(points[idx].onScreen){
+				
+				//next pt wrapping around line
+				int nx = (idx + 1) % objectRes + i * objectRes;
+
+				//pt below in the grid
+				int eq_nxl = (idx + objectRes) % pSize;
+
+				SDL_RenderDrawLine(renderer, points[idx].screenX, points[idx].screenY, points[nx].screenX, points[nx].screenY);
+				SDL_RenderDrawLine(renderer, points[idx].screenX, points[idx].screenY, points[eq_nxl].screenX, points[eq_nxl].screenY);
+				SDL_RenderDrawLine(renderer, points[eq_nxl].screenX, points[eq_nxl].screenY, points[nx].screenX, points[nx].screenY);
+			}
+
+		}
+	}
+
+	if(renderLabels){
+
+		point3D center;
+	
+		center.x = posX;
+		center.y = posY;
+		center.z = posZ;
+
+		center.project(_cam, 0, 0, 0);
+
+		double relPosZ = center.z + posZ - _cam.posZ;
+		double zConversion = _cam.fov / relPosZ;
+
+		double screenR = relPosZ * zConversion * 0.5 - _cam.fov;
+		/*
+		SDL_Rect nose = {center.screenX - 10, center.screenY - 10 - screenR, 20, 20};
+
+		SDL_RenderFillRect(renderer, &nose);
+		*/
+	
+		int txtW;
+		TTF_SizeText(_txtRenderer->font, name.c_str(), &txtW, nullptr);
+		SDL_RenderDrawLine(renderer, center.screenX, center.screenY, center.screenX, center.screenY + screenR + 25);
+		_txtRenderer->renderText(center.screenX - txtW / 2, center.screenY + screenR - 25, name, {255, 255, 255});
+	}
+}
+
+SpaceObject::SpaceObject(std::string _name, double _x, double _y, double _z, double _mass, double _radius, double _angVelocityOrbit, double _angVelocityRotation){
+
+	name = _name;
 
 	posX = _x;
 	posY = _y;
@@ -308,31 +339,4 @@ SpaceObject::SpaceObject(double _x, double _y, double _z, double _mass, double _
 	}
 }
 
-void SpaceObject::render(SDL_Renderer* renderer, textRenderer* txtRenderer){
 
-	int pSize = points.size();
-
-	for(int i = 0; i < objectRes; i++){
-	
-		for(int j = 0; j < objectRes; j++){
-
-			//pt in current line
-			int idx = j + (i * objectRes);
-
-			if(points[idx].onScreen){
-				
-				//next pt wrapping around line
-				int nx = (idx + 1) % objectRes + i * objectRes;
-
-				//pt below in the grid
-				int eq_nxl = (idx + objectRes) % pSize;
-
-				SDL_RenderDrawLine(renderer, points[idx].screenX, points[idx].screenY, points[nx].screenX, points[nx].screenY);
-				SDL_RenderDrawLine(renderer, points[idx].screenX, points[idx].screenY, points[eq_nxl].screenX, points[eq_nxl].screenY);
-				SDL_RenderDrawLine(renderer, points[eq_nxl].screenX, points[eq_nxl].screenY, points[nx].screenX, points[nx].screenY);
-			}
-
-		}
-	}
-
-}

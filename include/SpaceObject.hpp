@@ -14,6 +14,7 @@ const double PI = M_PI;
 const double HALF_PI = M_PI / 2;
 double map(double value, double f1, double l1, double f2, double l2);
 
+class Camera;
 
 //position
 struct point3D{
@@ -21,6 +22,8 @@ struct point3D{
 	double x, y, z;
 	double screenX, screenY;
 	bool onScreen;
+
+	void project(Camera &_cam, double _posX, double _posY, double _posZ);
 
 	void rotateX(double cosT, double sinT);
 	void rotateY(double cosT, double sinT);
@@ -36,7 +39,7 @@ class Camera{
 	double posX, posY, posZ;
 	double tiltX, tiltY, tiltZ;
 
-	Camera(double _posX = 0, double _posY = 0, double _posZ = -200, double _fov = 400, double _tiltX = 0, double _tiltY = 0, double _tiltZ = 0);
+	Camera(double _posX = 0, double _posY = 0, double _posZ = -200, double _fov = DEFAULTFOV, double _tiltX = 0, double _tiltY = 0, double _tiltZ = 0);
 
 	void moveX(double speed, float deltaT);
 	void moveY(double speed, float deltaT);
@@ -50,6 +53,8 @@ class Camera{
 class SpaceObject{
 
 	public:
+
+	std::string name;
 
 	double posX, posY, posZ;
 
@@ -65,13 +70,13 @@ class SpaceObject{
 
 	int objectRes;
 
-	SpaceObject(double _x, double _y, double _z, double _mass, double _radius, double angVelocityOrbit, double angVelocityRotation);
+	SpaceObject(std::string _name, double _x, double _y, double _z, double _mass, double _radius, double angVelocityOrbit, double angVelocityRotation);
 
 	//display
-	void render(SDL_Renderer* rendrer, textRenderer* txtRenderer);
+	void render(SDL_Renderer* renderer, textRenderer* _txtRenderer, bool renderLabels, Camera &_cam);
 	//void project(Camera _cam);
-	void project(Camera _cam);
-	void project(Camera _cam, Camera decoy);
+	void project(Camera &_cam);
+	void project(Camera &_cam, Camera &_decoy);
 	//void project(double distance, double focalLength);
 
 	//motion
