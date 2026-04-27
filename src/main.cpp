@@ -50,7 +50,7 @@ int main(int argc, char* argv[]){
         textRenderer* txtRenderer = new textRenderer(renderer, "../src/Hack-Regular.ttf", 20);
 
 
-	const std::chrono::duration<double> frameMaxExecTime(1.0 / 60.0);
+	const std::chrono::duration<double> frameMaxExecTime(1.0 / FRAMECAP);
 	auto lastFrameTime = std::chrono::high_resolution_clock::now();
 	double deltaTime;
 
@@ -74,9 +74,6 @@ int main(int argc, char* argv[]){
 	hud.stats.push_back({"tiltY", &cameras[cidx].tiltY});
 	hud.stats.push_back({"fps", &fps});
 
-
-
-	
 	std::map<std::string, SpaceObject> astros;
 	
 	/*
@@ -92,7 +89,7 @@ int main(int argc, char* argv[]){
 	astros.try_emplace("Neptune", 6000.00, 0.00, 0.00, 1.00, 28.00, 1.21e-3, 1080.0e-3);
 	*/
 
-	//rotation-orbit-size ratio accurate ( NOT YET I HAVE YET TO DO THIS )
+	//i want to have rotation-orbit-distance-size scaled here at some point just to see how it looks
 	astros.try_emplace("Sun", "Sun", 0.00, 0.00, 0.00, 1.00, 50.00, 0.00, 28.7e-3);
 	astros.try_emplace("Mercury", "Mercury", 78.00, 0.00, 0.00, 1.00, 15.00, 8.26e-3, 12.4e-3);
 	astros.try_emplace("Venus", "Venus", 144.00, 0.00, 0.00, 1.00, 20.00, 3.23e-3, -2.99e-3);
@@ -103,22 +100,16 @@ int main(int argc, char* argv[]){
 	astros.try_emplace("Uranus", "Uranus", 3840.00, 0.00, 0.00, 1.00, 28.00, 2.37e-3, 1010.0e-3);
 	astros.try_emplace("Neptune", "Neptune", 6000.00, 0.00, 0.00, 1.00, 28.00, 1.21e-3, 1080.0e-3);
 
-	/*
-	astros.try_emplace("Sun", 0.00, 0.00, 0.00, 1.00, 50.00, 0.00, 28.7e-4);
-	astros.try_emplace("Mercury", 78.00, 0.00, 0.00, 1.00, 15.00, 8.26e-2, 12.4e-4);
-	astros.try_emplace("Venus", 144.00, 0.00, 0.00, 1.00, 20.00, 3.23e-2, -2.99e-4);
-	astros.try_emplace("Earth", 200.00, 0.00, 0.00, 1.00, 20.00, 1.99e-2, 727.2e-4);
-	astros.try_emplace("Mars", 304.00, 0.00, 0.00, 1.00, 16.00, 1.06e-2, 708.8e-4);
-	astros.try_emplace("Jupiter", 1200.00, 0.00, 0.00, 1.00, 40.00, 1.67e-2, 1760.0e-4);
-	astros.try_emplace("Saturn", 2180.00, 0.00, 0.00, 1.00, 35.00, 9.29e-2, 1630.0e-4);
-	astros.try_emplace("Uranus", 3840.00, 0.00, 0.00, 1.00, 28.00, 2.37e-2, 1010.0e-4);
-	astros.try_emplace("Neptune", 6000.00, 0.00, 0.00, 1.00, 28.00, 1.21e-2, 1080.0e-4);
-	*/
+	//gigantic thing for testng
+	//astros.try_emplace("AAA", "AAA", 1000.00, 0.00, 0.00, 1.00, 500.00, 10.06e-3, 708.8e-3);
 
 	if(parser.flags.isCamDecoy){
 
 		//we set the first cam as decoy on the origin
 		//and move the cidx to the next we are inserting
+		//
+		//this will be handled better in a future not handing out
+		//hardcoded lvalues as indexes
 		cameras.push_back({});
 		cidx++;
 		astros.try_emplace("CAMERA", "CAMERA", -cameras[0].posX - 5, -cameras[0].posY, cameras[0].posZ, 0, 10, 0, 0);
@@ -168,6 +159,23 @@ int main(int argc, char* argv[]){
 
 			SpaceObject* so = &astro.second;
 
+
+			int oldObjectRes = so->objectRes;
+
+			if(parser.flags.isCamDecoy){
+
+				so->calcObjRes(cameras[0]);
+			}
+			else{
+
+				so->calcObjRes(cameras[cidx]);
+			}
+
+			if(so->objectRes != oldObjectRes){
+
+				so->plot();
+			}
+
 			so->rotateY(so->angVelocityRotation * deltaTime);
 			so->orbitY(so->angVelocityOrbit * deltaTime);
 
@@ -181,6 +189,11 @@ int main(int argc, char* argv[]){
 			}
 
 			so->render(renderer, txtRenderer, parser.flags.renderLabels, cameras[cidx]);
+
+			if(parser.flags.isCamDecoy){
+
+				so->projectRenderPts(renderer, cameras[cidx]);
+			}
 		}
 	
 		hud.renderCrossHair(renderer);

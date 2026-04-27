@@ -175,6 +175,28 @@ void Camera::worldCameraTransform(double &relX, double &relY, double &relZ){
 	}
 }
 
+void SpaceObject::calcObjRes(Camera &_cam){
+
+	double dx = posX - _cam.posX;
+	double dy = posY - _cam.posY;
+	double dz = posZ - _cam.posZ;
+
+	double objCamDistance = sqrt((dx*dx) + (dy*dy) + (dz*dz));
+	double newRes = (TARGETRESMODIFIER * radius + _cam.fov) / std::pow(objCamDistance, RESDECAYMODIFIER);
+
+	if(newRes > MAXRES){
+
+		objectRes = MAXRES;
+	}
+	else if(newRes < MINRES){
+
+		objectRes = MINRES;
+	}
+	else{
+		objectRes = newRes;
+	}
+}
+
 void SpaceObject::project(Camera &_cam){
 
 	for(int i = 0; i < points.size(); i++){
@@ -182,6 +204,7 @@ void SpaceObject::project(Camera &_cam){
 		points[i].project(_cam, posX, posY, posZ);
 	}
 
+	bool outsideScreen = true;
 	for(int i = 0; i < points.size(); i++){
 
 		//flag to not render pixels outside the view of the camera
@@ -193,11 +216,19 @@ void SpaceObject::project(Camera &_cam){
 			|| (points[eq_nxl].screenX > 0 && points[eq_nxl].screenX < RES[0] && points[eq_nxl].screenY > 0 && points[eq_nxl].screenY < RES[1])){
 
 			points[i].onScreen = true;
+			outsideScreen = false;
+			
 		}
 		else{
 			points[i].onScreen = false;
 		}
 
+	}
+
+	if(outsideScreen){
+
+		objectRes = MINRES;
+		plot();
 	}
 }
 
@@ -211,22 +242,30 @@ void SpaceObject::project(Camera &_cam, Camera &_decoy){
 		points[i].project(_decoy, posX, posY, posZ);
 	}
 
+	bool outsideScreen = true;
 	for(int i = 0; i < points.size(); i++){
 
 		//flag to not render pixels outside the view of the camera
 		int nx = (i + 1) % points.size();
 		int eq_nxl = (i + objectRes) % points.size();
-
+		
 		if((points[i].screenX > 0 && points[i].screenX < RES[0] && points[i].screenY > 0 && points[i].screenY < RES[1])
 			|| (points[nx].screenX > 0 && points[nx].screenX < RES[0] && points[nx].screenY > 0 && points[nx].screenY < RES[1])
 			|| (points[eq_nxl].screenX > 0 && points[eq_nxl].screenX < RES[0] && points[eq_nxl].screenY > 0 && points[eq_nxl].screenY < RES[1])){
 
 			points[i].onScreen = true;
+			outsideScreen = false;
 		}
 		else{
 			points[i].onScreen = false;
 		}
 
+	}
+
+	if(outsideScreen){
+
+		objectRes = MINRES;
+		plot();
 	}
 
 	for(int i = 0; i < points.size(); i++){
@@ -238,7 +277,7 @@ void SpaceObject::project(Camera &_cam, Camera &_decoy){
 void SpaceObject::render(SDL_Renderer* renderer, textRenderer* _txtRenderer, bool renderLabels, Camera &_cam){
 
 	int pSize = points.size();
-
+	
 	for(int i = 0; i < objectRes; i++){
 	
 		for(int j = 0; j < objectRes; j++){
@@ -254,6 +293,7 @@ void SpaceObject::render(SDL_Renderer* renderer, textRenderer* _txtRenderer, boo
 				//pt below in the grid
 				int eq_nxl = (idx + objectRes) % pSize;
 
+				//drawing triangles
 				SDL_RenderDrawLine(renderer, points[idx].screenX, points[idx].screenY, points[nx].screenX, points[nx].screenY);
 				SDL_RenderDrawLine(renderer, points[idx].screenX, points[idx].screenY, points[eq_nxl].screenX, points[eq_nxl].screenY);
 				SDL_RenderDrawLine(renderer, points[eq_nxl].screenX, points[eq_nxl].screenY, points[nx].screenX, points[nx].screenY);
@@ -289,21 +329,9 @@ void SpaceObject::render(SDL_Renderer* renderer, textRenderer* _txtRenderer, boo
 	}
 }
 
-SpaceObject::SpaceObject(std::string _name, double _x, double _y, double _z, double _mass, double _radius, double _angVelocityOrbit, double _angVelocityRotation){
+void SpaceObject::plot(){
 
-	name = _name;
-
-	posX = _x;
-	posY = _y;
-	posZ = _z;
-
-	mass = _mass;
-	radius = _radius;
-
-	angVelocityOrbit = _angVelocityOrbit;
-	angVelocityRotation = _angVelocityRotation;
-
-	objectRes = 30;
+	points.clear();
 
 	for(int i = 0; i < objectRes + 1; i++){
 	
@@ -319,13 +347,44 @@ SpaceObject::SpaceObject(std::string _name, double _x, double _y, double _z, dou
 			float cosLon = cos(lon);
 			float sinLon = sin(lon);
 
-			float x = _radius * sinLon * cosLat;
-			float y = _radius * sinLon * sinLat;
-			float z = _radius * cosLon;
+			float x = radius * sinLon * cosLat;
+			float y = radius * sinLon * sinLat;
+			float z = radius * cosLon;
 
 			points.push_back({x, y, z, 0, 0});
 		}
 	}
+}
+
+//this is meant for decoy and debugging
+void SpaceObject::projectRenderPts(SDL_Renderer* renderer, Camera &_cam){
+
+	for(point3D pt : points){
+
+		pt.project(_cam, posX, posY, posZ);
+		SDL_RenderDrawPoint(renderer, pt.screenX, pt.screenY);
+	}
+}
+
+SpaceObject::SpaceObject(std::string _name, double _x, double _y, double _z, double _mass, double _radius, double _angVelocityOrbit, double _angVelocityRotation){
+
+	name = _name;
+
+	posX = _x;
+	posY = _y;
+	posZ = _z;
+
+	mass = _mass;
+	radius = _radius;
+
+	angVelocityOrbit = _angVelocityOrbit;
+	angVelocityRotation = _angVelocityRotation;
+
+	objectRes = 20;
+
+	plot();
+
+	
 }
 
 

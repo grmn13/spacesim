@@ -72,12 +72,14 @@ class SpaceObject{
 
 	SpaceObject(std::string _name, double _x, double _y, double _z, double _mass, double _radius, double angVelocityOrbit, double angVelocityRotation);
 
+	void calcObjRes(Camera &_cam);
+	void plot();
+
 	//display
 	void render(SDL_Renderer* renderer, textRenderer* _txtRenderer, bool renderLabels, Camera &_cam);
-	//void project(Camera _cam);
+
 	void project(Camera &_cam);
 	void project(Camera &_cam, Camera &_decoy);
-	//void project(double distance, double focalLength);
 
 	//motion
 	void rotateX(double theta);
@@ -87,4 +89,6 @@ class SpaceObject{
 	void orbitX(double theta);
 	void orbitY(double theta);
 	void orbitZ(double theta);
+	
+	void projectRenderPts(SDL_Renderer* renderer, Camera &_cam);
 };
