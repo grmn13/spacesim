@@ -91,6 +91,8 @@ int main(int argc, char* argv[]){
 
 	//i want to have rotation-orbit-distance-size scaled here at some point just to see how it looks
 	astros.try_emplace("Sun", "Sun", 0.00, 0.00, 0.00, 1.00, 50.00, 0.00, 28.7e-3);
+	//sun rotation looks weird now because of the constant recalculations (idk why only on the sun)
+	//i will try to de-couple the rotation angle from the points in the vector so it stays consistent
 	astros.try_emplace("Mercury", "Mercury", 78.00, 0.00, 0.00, 1.00, 15.00, 8.26e-3, 12.4e-3);
 	astros.try_emplace("Venus", "Venus", 144.00, 0.00, 0.00, 1.00, 20.00, 3.23e-3, -2.99e-3);
 	astros.try_emplace("Earth", "Earth", 200.00, 0.00, 0.00, 1.00, 20.00, 1.99e-3, 727.2e-3);
