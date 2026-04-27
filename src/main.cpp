@@ -13,7 +13,7 @@
 
 #ifndef DEFINES_HPP
 #define SPEED 5
-#define FOVSPEED 40
+#define FOVSPEED 60
 #define CAMSPEED 2
 #define MOUSESENS 1
 #endif

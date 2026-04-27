@@ -66,6 +66,14 @@ void handleInput(SDL_Event* _events, const Uint8* _kbstate, Camera &_cam, float 
 					_cam.tiltY = std::fmod(_cam.tiltY + (_events->motion.xrel * (MOUSESENS / _cam.fov)), 2 * PI);
 				}
 			}
+
+			if(_events->type == SDL_MOUSEWHEEL){
+
+				if(_events->wheel.y > 0 || _cam.fov + FOVSPEED * _events->wheel.y * 1.5 > MINFOV){
+
+					_cam.fov += FOVSPEED * _events->wheel.y * 1.5;
+				}
+			}
 		}
 	}
 
@@ -100,8 +108,8 @@ void handleInput(SDL_Event* _events, const Uint8* _kbstate, Camera &_cam, float 
 	}
 	
 	//camera fov
-	if(_kbstate[SDL_SCANCODE_MINUS] && _cam.fov > FOVSPEED){
-
+	if(_kbstate[SDL_SCANCODE_MINUS] && (_cam.fov - FOVSPEED * deltaTime) > MINFOV){
+	
 		_cam.fov -= FOVSPEED * deltaTime;
 	}
 	if(_kbstate[SDL_SCANCODE_EQUALS]){

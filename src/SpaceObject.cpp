@@ -303,18 +303,7 @@ SpaceObject::SpaceObject(std::string _name, double _x, double _y, double _z, dou
 	angVelocityOrbit = _angVelocityOrbit;
 	angVelocityRotation = _angVelocityRotation;
 
-	objectRes = 20;
-
-	/*
-	points.push_back({-radius, radius, radius, 0, 0});
-	points.push_back({radius, radius, radius, 0, 0});
-	points.push_back({radius, -radius, radius, 0, 0});
-	points.push_back({-radius, -radius, radius, 0, 0});
-	points.push_back({-radius, radius, -radius, 0, 0});
-	points.push_back({radius, radius, -radius, 0, 0});
-	points.push_back({radius, -radius, -radius, 0, 0});
-	points.push_back({-radius, -radius, -radius, 0, 0});
-	*/
+	objectRes = 30;
 
 	for(int i = 0; i < objectRes + 1; i++){
 	
