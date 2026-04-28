@@ -181,8 +181,15 @@ void SpaceObject::calcObjRes(Camera &_cam){
 	double dy = posY - _cam.posY;
 	double dz = posZ - _cam.posZ;
 
-	double objCamDistance = sqrt((dx*dx) + (dy*dy) + (dz*dz));
-	double newRes = (TARGETRESMODIFIER * radius + _cam.fov) / std::pow(objCamDistance, RESDECAYMODIFIER);
+	//i need to have the range of values from MINRES to MAXRES
+	//be mapped out accross a higher value of distances
+	//
+	//basically it reaches the lowest amount of detail way to fast
+	double objCamDistance = std::sqrt((dx*dx) + (dy*dy) + (dz*dz));
+
+	double screenR = (radius * _cam.fov) / (objCamDistance + 1.0);
+
+	double newRes = screenR / LOD;
 
 	if(newRes > MAXRES){
 
@@ -196,6 +203,34 @@ void SpaceObject::calcObjRes(Camera &_cam){
 		objectRes = newRes;
 	}
 }
+
+//this one works decently
+/*
+void SpaceObject::calcObjRes(Camera &_cam){
+
+	double dx = posX - _cam.posX;
+	double dy = posY - _cam.posY;
+	double dz = posZ - _cam.posZ;
+
+	double objCamDistance = std::sqrt((dx*dx) + (dy*dy) + (dz*dz));
+	
+	double logZoom = std::log10(_cam.fov + 1.0) * 3;
+
+	double newRes = LOD * radius * logZoom / std::pow(objCamDistance, RESDECAYMODIFIER);
+
+	if(newRes > MAXRES){
+
+		objectRes = MAXRES;
+	}
+	else if(newRes < MINRES){
+
+		objectRes = MINRES;
+	}
+	else{
+		objectRes = newRes;
+	}
+}
+*/
 
 void SpaceObject::project(Camera &_cam){
 
@@ -325,7 +360,8 @@ void SpaceObject::render(SDL_Renderer* renderer, textRenderer* _txtRenderer, boo
 		int txtW;
 		TTF_SizeText(_txtRenderer->font, name.c_str(), &txtW, nullptr);
 		SDL_RenderDrawLine(renderer, center.screenX, center.screenY, center.screenX, center.screenY + screenR + 25);
-		_txtRenderer->renderText(center.screenX - txtW / 2, center.screenY + screenR - 25, name, {255, 255, 255});
+		//_txtRenderer->renderText(center.screenX - txtW / 2, center.screenY + screenR - 25, name, {255, 255, 255}); // TEMPORARELY REPLACED THIS WITH THE ONE BELOW
+		_txtRenderer->renderVariable(center.screenX - txtW / 2, center.screenY + 100 - 25, "res", objectRes, {255, 255, 255});
 	}
 }
 
