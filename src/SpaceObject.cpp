@@ -177,9 +177,13 @@ void Camera::worldCameraTransform(double &relX, double &relY, double &relZ){
 
 void SpaceObject::calcObjRes(Camera &_cam){
 
+	bool tiny = false;
+
 	double dx = posX - _cam.posX;
 	double dy = posY - _cam.posY;
 	double dz = posZ - _cam.posZ;
+
+	double newRes;
 
 	//i need to have the range of values from MINRES to MAXRES
 	//be mapped out accross a higher value of distances
@@ -189,19 +193,29 @@ void SpaceObject::calcObjRes(Camera &_cam){
 
 	double screenR = (radius * _cam.fov) / (objCamDistance + 1.0);
 
-	double newRes = screenR / LOD;
+	if(screenR > TINYSIZE){
 
-	if(newRes > MAXRES){
+		newRes = screenR / LOD;
+	}
+	else{
+		newRes = TINYRES;
+		tiny = true;
+	}
+	//double newRes = screenR > 20 ? screenR / LOD : 5;
+
+	
+	if(!tiny && newRes > MAXRES){
 
 		objectRes = MAXRES;
 	}
-	else if(newRes < MINRES){
+	else if(!tiny && newRes < MINRES){
 
 		objectRes = MINRES;
 	}
 	else{
 		objectRes = newRes;
 	}
+
 }
 
 //this one works decently
@@ -262,7 +276,7 @@ void SpaceObject::project(Camera &_cam){
 
 	if(outsideScreen){
 
-		objectRes = MINRES;
+		objectRes = TINYRES;
 		plot();
 	}
 }
@@ -299,7 +313,7 @@ void SpaceObject::project(Camera &_cam, Camera &_decoy){
 
 	if(outsideScreen){
 
-		objectRes = MINRES;
+		objectRes = TINYRES;
 		plot();
 	}
 
@@ -351,17 +365,11 @@ void SpaceObject::render(SDL_Renderer* renderer, textRenderer* _txtRenderer, boo
 		double zConversion = _cam.fov / relPosZ;
 
 		double screenR = relPosZ * zConversion * 0.5 - _cam.fov;
-		/*
-		SDL_Rect nose = {center.screenX - 10, center.screenY - 10 - screenR, 20, 20};
-
-		SDL_RenderFillRect(renderer, &nose);
-		*/
 	
 		int txtW;
 		TTF_SizeText(_txtRenderer->font, name.c_str(), &txtW, nullptr);
 		SDL_RenderDrawLine(renderer, center.screenX, center.screenY, center.screenX, center.screenY + screenR + 25);
-		//_txtRenderer->renderText(center.screenX - txtW / 2, center.screenY + screenR - 25, name, {255, 255, 255}); // TEMPORARELY REPLACED THIS WITH THE ONE BELOW
-		_txtRenderer->renderVariable(center.screenX - txtW / 2, center.screenY + 100 - 25, "res", objectRes, {255, 255, 255});
+		_txtRenderer->renderText(center.screenX - txtW / 2, center.screenY + screenR - 25, name, {255, 255, 255}); // TEMPORARELY REPLACED THIS WITH THE ONE BELOW
 	}
 }
 

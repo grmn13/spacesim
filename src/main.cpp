@@ -11,16 +11,6 @@
 #include "Input.hpp"
 #include "defines.hpp"
 
-#ifndef DEFINES_HPP
-#define SPEED 5
-#define FOVSPEED 60
-#define CAMSPEED 2
-#define MOUSESENS 1
-#endif
-
-//a lot of code is poorly structured and shouldnt be in
-//this file or at leas should be better organized
-
 double radToDeg(double radians);
 
 int main(int argc, char* argv[]){
