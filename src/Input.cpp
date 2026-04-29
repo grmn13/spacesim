@@ -37,6 +37,8 @@ Parser::Parser(int argc, char* argv[]){
 
 void handleInput(SDL_Event* _events, const Uint8* _kbstate, Camera &_cam, float deltaTime, bool mouseDisabled){
 
+	int SPEEDVAR = SPEED;
+
 	while(SDL_PollEvent(_events)){
 	
 		if(!mouseDisabled){
@@ -77,34 +79,40 @@ void handleInput(SDL_Event* _events, const Uint8* _kbstate, Camera &_cam, float 
 		}
 	}
 
+	//increase speed
+	if(_kbstate[SDL_SCANCODE_LSHIFT]){
+
+		SPEEDVAR *= 8;
+	}
+
 	//_camera Z
 	if(_kbstate[SDL_SCANCODE_W]){
 
-		_cam.moveZ(SPEED, deltaTime); // negative due to inverted Y in SDL
+		_cam.moveZ(SPEEDVAR, deltaTime); // negative due to inverted Y in SDL
 	}
 	if(_kbstate[SDL_SCANCODE_S]){
 
-		_cam.moveZ(-SPEED, deltaTime);
+		_cam.moveZ(-SPEEDVAR, deltaTime);
 	}
 
 	//_camera X
 	if(_kbstate[SDL_SCANCODE_A]){
 
-		_cam.moveX(-SPEED, deltaTime);
+		_cam.moveX(-SPEEDVAR, deltaTime);
 	}
 	if(_kbstate[SDL_SCANCODE_D]){
 
-		_cam.moveX(SPEED, deltaTime);
+		_cam.moveX(SPEEDVAR, deltaTime);
 	}
 
 	//_camera Y
 	if(_kbstate[SDL_SCANCODE_SPACE]){
 
-		_cam.moveY(-SPEED, deltaTime);
+		_cam.moveY(-SPEEDVAR, deltaTime);
 	}
-	if(_kbstate[SDL_SCANCODE_LSHIFT]){
+	if(_kbstate[SDL_SCANCODE_LCTRL]){
 
-		_cam.moveY(SPEED, deltaTime);
+		_cam.moveY(SPEEDVAR, deltaTime);
 	}
 	
 	//camera fov
