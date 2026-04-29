@@ -151,7 +151,6 @@ int main(int argc, char* argv[]){
 
 			SpaceObject* so = &astro.second;
 
-
 			int oldObjectRes = so->objectRes;
 
 			if(parser.flags.isCamDecoy){
@@ -167,6 +166,8 @@ int main(int argc, char* argv[]){
 
 				so->plot();
 			}
+
+			so->rotation = std::fmod(so->rotation + (so->angVelocityRotation * deltaTime), 2 * PI);
 
 			so->rotateY(so->angVelocityRotation * deltaTime);
 			so->orbitY(so->angVelocityOrbit * deltaTime);

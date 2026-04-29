@@ -6,15 +6,11 @@
 #define CAMSPEED 2
 #define MOUSESENS 1
 #define MINFOV 50
-#define TARGETRESMODIFIER 1//52 // deprecated
 #define LOD 2.8
-#define RANGEDYNRES 10
-#define LODREFDIST 135
-#define LODREFZOOM 550
 #define RESDECAYMODIFIER 0.7//the lower the value the slower the decay
 #define MINRES 12
 #define TINYRES 6
 #define TINYSIZE 6
-#define MAXRES 60
+#define MAXRES 40
 #define FRAMECAP 60.0
 

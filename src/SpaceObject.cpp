@@ -369,7 +369,8 @@ void SpaceObject::render(SDL_Renderer* renderer, textRenderer* _txtRenderer, boo
 		int txtW;
 		TTF_SizeText(_txtRenderer->font, name.c_str(), &txtW, nullptr);
 		SDL_RenderDrawLine(renderer, center.screenX, center.screenY, center.screenX, center.screenY + screenR + 25);
-		_txtRenderer->renderText(center.screenX - txtW / 2, center.screenY + screenR - 25, name, {255, 255, 255}); // TEMPORARELY REPLACED THIS WITH THE ONE BELOW
+		//_txtRenderer->renderText(center.screenX - txtW / 2, center.screenY + screenR - 25, name, {255, 255, 255}); // TEMPORARELY REPLACED THIS WITH THE ONE BELOW
+		_txtRenderer->renderVariable(center.screenX - txtW / 2, center.screenY + screenR - 25, "", rotation, {255, 255, 255});
 	}
 }
 
@@ -398,6 +399,8 @@ void SpaceObject::plot(){
 			points.push_back({x, y, z, 0, 0});
 		}
 	}
+
+	rotateY(rotation);
 }
 
 //this is meant for decoy and debugging
@@ -420,6 +423,8 @@ SpaceObject::SpaceObject(std::string _name, double _x, double _y, double _z, dou
 
 	mass = _mass;
 	radius = _radius;
+
+	rotation = 0;
 
 	angVelocityOrbit = _angVelocityOrbit;
 	angVelocityRotation = _angVelocityRotation;

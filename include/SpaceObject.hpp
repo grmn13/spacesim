@@ -20,6 +20,7 @@ class Camera;
 struct point3D{
 
 	double x, y, z;
+	double rX, rY, rZ; //rotated X Y Z
 	double screenX, screenY;
 	bool onScreen;
 
@@ -67,6 +68,8 @@ class SpaceObject{
 	double mass;
 	double radius;
 	double F;
+
+	double rotation;
 
 	int objectRes;
 
